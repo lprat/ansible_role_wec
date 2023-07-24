@@ -28,9 +28,6 @@
         chkms: "{{ rhash.results | map(attribute='stat.checksum') | list }}"
       when:
         - rhash.results[0].stat.exists and rhash.results[1].stat.exists
-    - name: Debug
-      debug:
-        msg: "{{ rfiles }}"
 - name: Change CustomEventChannels files
   when:
     - not rhash.results[0].stat.exists or not rhash.results[1].stat.exists or sha1_man != rfiles['CustomEventChannels.man'] or sha1_dll != rfiles['CustomEventChannels.dll']
