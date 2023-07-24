@@ -1,0 +1,42 @@
+---
+
+
+- name: Create subscription {{ item }}
+  block:
+    - name: Verify if subscription exit {{ item }}
+      ansible.windows.win_shell: "wecutil gs {{ item }}"
+      #register: sube
+#when: sube is failed
+  rescue:
+    - name: Check the directory
+      ansible.windows.win_stat:
+        path: "{{ path_temp }}"
+      register: dir_data
+    - name: Change direcotry temp
+      ansible.builtin.set_fact:
+        path_upload: "c:"
+      when: not dir_data.stat.exists
+    - name: Copy xml {{ item }}
+      ansible.windows.win_copy:
+        src: "{{ role_path }}/files/{{ item }}.xml"
+        dest: "{{ path_temp }}\\{{ item }}.xml"
+    - name: Load xml {{ item }}
+      ansible.windows.win_shell: "wecutil cs {{ item }}.xml"
+      args:
+        chdir: "{{ path_temp }}"
+      register: lwef
+    - name: Retry to load xml {{ item }}
+      ansible.windows.win_shell: "wecutil rs {{ item }}"
+      args:
+        chdir: "{{ path_temp }}"
+      when: lwef is failed
+    - name: Enable subscriptions {{ item }}
+      ansible.windows.win_shell: "wecutil ss {{ item }} /e:true"
+      args:
+        chdir: "{{ path_temp }}"
+    - name: Enabling WecUtil Quick Config...
+      ansible.windows.win_shell: "wecutil qc /q:true"
+    - name: If present remove a file xml {{ item }}
+      ansible.windows.win_file:
+        path: "{{ path_temp }}\\{{ item }}.xml"
+        state: absent

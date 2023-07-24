@@ -1,0 +1,70 @@
+---
+# tasks file for roles/wef
+
+
+# First step: put CustomEventChannels.dll & CustomEventChannels.man in c:\windows\system32\
+- name: Set var path CustomEventChannels.dll
+  ansible.builtin.set_fact:
+    ldll: "{{ role_path }}/files/CustomEventChannels.dll"
+- name: Set var path CustomEventChannels.man
+  ansible.builtin.set_fact:
+    lman: "{{ role_path }}/files/CustomEventChannels.man"
+
+- name: Compare local and remote CustomEventChannels files
+  block:
+    - name: Get SHA1 checksum of files on remote host
+      ansible.windows.win_stat:
+        path: "{{ item }}"
+        #checksum_algorithm: sha1
+      register: rhash
+      loop:
+        - c:\windows\system32\CustomEventChannels.dll
+        - c:\windows\system32\CustomEventChannels.man
+    - name: Get hash on remote files
+      ansible.builtin.set_fact:
+        rfiles: "{{ dict(paths | zip(chkms)) }}"
+      vars:
+        paths: "{{ rhash.results | map(attribute='stat.filename') | list }}"
+        chkms: "{{ rhash.results | map(attribute='stat.checksum') | list }}"
+      when:
+        - rhash.results[0].stat.exists and rhash.results[1].stat.exists
+    - name: Debug
+      debug:
+        msg: "{{ rfiles }}"
+- name: Change CustomEventChannels files
+  when:
+    - not rhash.results[0].stat.exists or not rhash.results[1].stat.exists or sha1_man != rfiles['CustomEventChannels.man'] or sha1_dll != rfiles['CustomEventChannels.dll']
+  block:
+    - name: Stop service if file local != remote
+      ansible.windows.win_service:
+        name: Wecsvc
+        state: stopped
+    - name: Unload old CustomEventChannels.man
+      ansible.windows.win_shell: "wevtutil um c:\\windows\\system32\\CustomEventChannels.man"
+      when: rhash.results[1].stat.exists
+    - name: Change file CustomEventChannels.man
+      ansible.windows.win_copy:
+        src: "{{ lman }}"
+        dest: c:\windows\system32\CustomEventChannels.man
+    - name: Change file CustomEventChannels.dll
+      ansible.windows.win_copy:
+        src: "{{ ldll }}"
+        dest: c:\windows\system32\CustomEventChannels.dll
+    - name: Load new CustomEventChannels.man
+      ansible.windows.win_shell: "wevtutil im c:\\windows\\system32\\CustomEventChannels.man"
+    - name: Resize logs
+      ansible.windows.win_powershell:
+        script: |
+          $xml = wevtutil el | select-string -pattern "WEC"
+          foreach ($subscription in $xml) {
+            wevtutil sl $subscription /ms:{{ wecsvc_events_maxsize }}
+          }
+- name: Wecsvc start
+  ansible.windows.win_service:
+    name: Wecsvc
+    state: started
+    start_mode: auto
+# Second steps: change subscription
+- name: WEF subscriptions
+  ansible.builtin.include_tasks: subtasks.yml
+  with_items: "{{ wef_palantir_subscriptions }}"

@@ -1,0 +1,68 @@
+---
+# defaults file for wef
+
+# sha1 of CustomEventChannels.dll
+sha1_dll: 56aa587e0e02f4d5312227aa77c303f453c830b4
+
+# sha1 of CustomEventChannels.man
+sha1_man: aff89256e89f2a87b07c3e7c9f5b9a5ac2801c43
+
+# path temp to upload xml subscribtion files
+path_temp: c:\Temp
+
+# Log file size: default 4GB
+wecsvc_events_maxsize: 4294967296
+
+# https://github.com/palantir/windows-event-forwarding/tree/master/wef-subscriptions
+wef_palantir_subscriptions:
+  - Account-Lockout
+  - Account-Management
+  - Active-Directory
+  - ADFS
+  - Application-Crashes
+  - Applocker
+  - Authentication
+  - Autoruns
+  - Bits-Client
+  - Certificate-Authority
+  - Code-Integrity
+  - Device-Guard
+  - DNS
+  - Drivers
+  - Duo-Security
+  - EMET
+  - Event-Log-Diagnostics
+  - Explicit-Credentials
+  - Exploit-Guard-ASR
+  - Exploit-Guard-CFA
+  - Exploit-Guard-EP
+  - Exploit-Guard-NP
+  - External-Devices
+  - Firewall
+  - Group-Policy-Errors
+  - Kerberos
+  - Log-Deletion-Security
+  - Log-Deletion-System
+  - Microsoft-Office
+  - MSI-Packages
+  - NTLM
+  - Object-Manipulation
+  - Operating-System
+  - Powershell
+  - Print
+  - Privilege-Use
+  - Process-Execution
+  - Registry
+  - Services
+  - Shares
+  - Smart-Card
+  - Software-Restriction-Policies
+  - Sysmon
+  - System-Time-Change
+  - Task-Scheduler
+  - Terminal-Services
+  - Windows-Defender
+  - Windows-Diagnostics
+  - Windows-Updates
+  - Wireless
+  - WMI
