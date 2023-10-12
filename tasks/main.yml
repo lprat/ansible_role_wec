@@ -65,6 +65,10 @@
     state: started
     start_mode: auto
 # Second steps: change subscription
+- name: Get current WEF subscriptions
+  ansible.windows.win_shell: "wecutil es"
+  register: Current_Sub
 - name: WEF subscriptions
   ansible.builtin.include_tasks: subtasks.yml
-  with_items: "{{ wef_palantir_subscriptions }}"
+  when: item not in Current_Sub.stdout_lines
+  loop: "{{ wef_palantir_subscriptions }}"
