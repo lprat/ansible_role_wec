@@ -9,6 +9,7 @@ Role Variables
  - sha1_dll: hash of local file (in files dir)  CustomEventChannels.dll (source: https://github.com/palantir/windows-event-forwarding/tree/master/windows-event-channels)
  - sha1_man: hash of local file (in files dir)  CustomEventChannels.man (source: https://github.com/palantir/windows-event-forwarding/tree/master/windows-event-channels)
  - path_temp: path remote to upload files dll/man/xml (default: c:\Temp)
+ - wecsvc_events_path: path to store evtx WEF subscription (default: C:\Windows\System32\winevt\Logs)
  - wecsvc_events_maxsize: size of logs (default: 4GB - in bytes)
  - wef_palantir_subscriptions: palantir subscription list (name is same of filename xml - https://github.com/palantir/windows-event-forwarding/tree/master/windows-event-channels)
 

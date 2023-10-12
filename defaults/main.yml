@@ -10,6 +10,9 @@ sha1_man: aff89256e89f2a87b07c3e7c9f5b9a5ac2801c43
 # path temp to upload xml subscribtion files
 path_temp: c:\Temp
 
+# Path to store evtx logs
+wecsvc_events_path: C:\Windows\System32\winevt\Logs
+
 # Log file size: default 4GB
 wecsvc_events_maxsize: 4294967296
 

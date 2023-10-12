@@ -52,11 +52,41 @@
         dest: c:\windows\system32\CustomEventChannels.dll
     - name: Load new CustomEventChannels.man
       ansible.windows.win_shell: "wevtutil im c:\\windows\\system32\\CustomEventChannels.man"
-    - name: Resize logs
+    - name: Create directory to store logs {{ wecsvc_events_path }}
+      ansible.windows.win_file:
+        path: "{{ wecsvc_events_path }}"
+        state: directory
+    - name: Set the owner SYSTEM to {{ wecsvc_events_path }}
+      ansible.windows.win_owner:
+        path: "{{ wecsvc_events_path }}"
+        user: SYSTEM
+        recurse: false
+    - name: Add rights on {{ wecsvc_events_path }}
+      ansible.windows.win_powershell:
+        script: |
+          $acl = Get-Acl {{ wecsvc_events_path }}
+          $acl.SetAccessRuleProtection($true,$true)
+          Set-Acl {{ wecsvc_events_path }} $acl
+          $acl = Get-Acl {{ wecsvc_events_path }}
+          $acl.Access | %{$acl.RemoveAccessRule($_)} | Out-Null
+          $permission  = "NT AUTHORITY\SYSTEM","FullControl", "ContainerInherit,ObjectInherit","None","Allow"
+          $rule = New-Object System.Security.AccessControl.FileSystemAccessRule $permission
+          $acl.SetAccessRule($rule)
+          Set-Acl {{ wecsvc_events_path }} $acl
+          $permission  = "NT SERVICE\EventLog","FullControl", "ContainerInherit,ObjectInherit","None","Allow"
+          $rule = New-Object System.Security.AccessControl.FileSystemAccessRule $permission
+          $acl.SetAccessRule($rule)
+          Set-Acl {{ wecsvc_events_path }} $acl
+          $permission  = "BUILTIN\Administrators","FullControl", "ContainerInherit,ObjectInherit","None","Allow"
+          $rule = New-Object System.Security.AccessControl.FileSystemAccessRule $permission
+          $acl.SetAccessRule($rule)
+          Set-Acl {{ wecsvc_events_path }} $acl
+    - name: Resize and fix path logs
       ansible.windows.win_powershell:
         script: |
           $xml = wevtutil el | select-string -pattern "WEC"
           foreach ($subscription in $xml) {
+            wevtutil sl $subscription /lfn:{{ wecsvc_events_path }}\$subscription.evtx
             wevtutil sl $subscription /ms:{{ wecsvc_events_maxsize }}
           }
 - name: Wecsvc start
